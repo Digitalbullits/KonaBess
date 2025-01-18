@@ -3,15 +3,19 @@ plugins {
 }
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "30.0.3"
+    compileSdkVersion 35
+    buildToolsVersion "35.0.0"
+
+    androidResources {
+        generateLocaleConfig true
+    }
 
     defaultConfig {
         applicationId "xzr.konabess"
         minSdkVersion 28
         targetSdkVersion 28
         versionCode 27
-        versionName "0.25 beta"
+        versionName "0.25 GRANULATED"
     }
 
     buildTypes {
@@ -21,8 +25,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
     }
     namespace 'xzr.konabess'
     lint {
