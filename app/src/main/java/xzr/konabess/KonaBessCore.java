@@ -303,6 +303,18 @@ public class KonaBessCore {
                 dtb.id = i;
                 dtb.type = ChipInfo.type.sun;
                 dtbs.add(dtb);
+            } else if (checkChip(context, i, "Blair")
+                    || checkChip(context, i, "Blair SoC")) {
+                dtb dtb = new dtb();
+                dtb.id = i;
+                dtb.type = ChipInfo.type.blair;
+                dtbs.add(dtb);
+            } else if (checkChip(context, i, "Holi")
+                    || checkChip(context, i, "Holi SoC")) {
+                dtb dtb = new dtb();
+                dtb.id = i;
+                dtb.type = ChipInfo.type.holi;
+                dtbs.add(dtb);    
             }
         }
     }
@@ -454,114 +466,4 @@ public class KonaBessCore {
                 i += size > 0 ? size : 1;
                 continue;
             }
-            i++;
-        }
-
-        for (i = 0; i < cut.size(); i++) {
-            File out = new File(context.getFilesDir().getAbsolutePath() + "/" + i + ".dtb");
-            FileOutputStream fileOutputStream = new FileOutputStream(out);
-            int end = (int) dtb.length();
-            try {
-                end = cut.get(i + 1);
-            } catch (Exception ignored) {
-            }
-
-            fileOutputStream.write(dtb_bytes, cut.get(i), end - cut.get(i));
-            fileInputStream.close();
-        }
-
-        if (!dtb.delete())
-            throw new IOException();
-
-        return cut.size();
-    }
-
-    private static void dts2dtb(Context context, int index) throws IOException {
-        Process process = new ProcessBuilder("sh").redirectErrorStream(true).start();
-        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(process.getOutputStream());
-        BufferedReader bufferedReader =
-                new BufferedReader((new InputStreamReader(process.getInputStream())));
-        outputStreamWriter.write("cd " + context.getFilesDir().getAbsolutePath() + "\n");
-        outputStreamWriter.write("./dtc -I dts -O dtb " + index + ".dts -o " + index + ".dtb\n");
-        outputStreamWriter.write("exit\n");
-        outputStreamWriter.flush();
-        StringBuilder log = new StringBuilder();
-        String s;
-        while ((s = bufferedReader.readLine()) != null) {
-            log.append(s).append("\n");
-        }
-        bufferedReader.close();
-        outputStreamWriter.close();
-        process.destroy();
-        if (!new File(context.getFilesDir().getAbsolutePath() + "/" + index + ".dtb").exists())
-            throw new IOException(log.toString());
-    }
-
-
-    private static void dtb2bootImage(Context context) throws IOException {
-        Process process = new ProcessBuilder("sh").redirectErrorStream(true).start();
-        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(process.getOutputStream());
-        BufferedReader bufferedReader =
-                new BufferedReader((new InputStreamReader(process.getInputStream())));
-        outputStreamWriter.write("cd " + context.getFilesDir().getAbsolutePath() + "\n");
-        if (dtb_type == dtb_types.both)
-            outputStreamWriter.write("cp dtb kernel_dtb\n");
-        outputStreamWriter.write("./magiskboot repack boot.img boot_new.img\n");
-        outputStreamWriter.write("exit\n");
-        outputStreamWriter.flush();
-        StringBuilder log = new StringBuilder();
-        String s;
-        while ((s = bufferedReader.readLine()) != null) {
-            log.append(s).append("\n");
-        }
-        bufferedReader.close();
-        outputStreamWriter.close();
-        process.destroy();
-        if (!new File(context.getFilesDir().getAbsolutePath() + "/boot_new.img").exists())
-            throw new IOException(log.toString());
-    }
-
-    public static void linkDtbs(Context context) throws IOException {
-        File out;
-
-        if (dtb_type == dtb_types.dtb)
-            out = new File(context.getFilesDir().getAbsolutePath() + "/dtb");
-        else if (dtb_type == dtb_types.kernel_dtb)
-            out = new File(context.getFilesDir().getAbsolutePath() + "/kernel_dtb");
-        else if (dtb_type == dtb_types.both) {
-            out = new File(context.getFilesDir().getAbsolutePath() + "/dtb");
-        } else {
-            throw new IOException();
-        }
-
-        FileOutputStream fileOutputStream = new FileOutputStream(out);
-        for (int i = 0; i < dtb_num; i++) {
-            File input = new File(context.getFilesDir().getAbsolutePath() + "/" + i + ".dtb");
-            FileInputStream fileInputStream = new FileInputStream(input);
-            byte[] b = new byte[(int) input.length()];
-            if (fileInputStream.read(b) != input.length())
-                throw new IOException();
-            fileOutputStream.write(b);
-            fileInputStream.close();
-        }
-        fileOutputStream.close();
-    }
-
-    public static void dts2bootImage(Context context) throws IOException {
-        for (int i = 0; i < dtb_num; i++) {
-            dts2dtb(context, i);
-        }
-        linkDtbs(context);
-        dtb2bootImage(context);
-    }
-
-    public static int getDtbIndex() {
-        int ret = -1;
-        try {
-            ret = Integer.parseInt(SystemProperties.get("ro.boot.dtb_idx", null));
-        } catch (Exception ignored) {
-
-        }
-        return ret;
-    }
-}
+   
