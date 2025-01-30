@@ -274,8 +274,7 @@ public class KonaBessCore {
                 dtb.id = i;
                 dtb.type = ChipInfo.type.ukee_singleBin;
                 dtbs.add(dtb);
-            } else if (checkChip(context, i, "Pineapple v2")
-                    || checkChip(context, i, "PineappleP v2")) {
+            } else if (checkChip(context, i, "Pineapple v2")) {
                 dtb dtb = new dtb();
                 dtb.id = i;
                 dtb.type = ChipInfo.type.pineapple;
@@ -290,31 +289,6 @@ public class KonaBessCore {
                 dtb.id = i;
                 dtb.type = ChipInfo.type.cliffs_7_singleBin;
                 dtbs.add(dtb);
-            } else if (checkChip(context, i, "KalamaP SG SoC")) {
-                dtb dtb = new dtb();
-                dtb.id = i;
-                dtb.type = ChipInfo.type.kalama_sg_singleBin;
-                dtbs.add(dtb);
-            } else if (checkChip(context, i, "Sun v2 SoC")
-                    || checkChip(context, i, "Sun Alt. Thermal Profile v2 SoC")
-                    || checkChip(context, i, "SunP v2 SoC")
-                    || checkChip(context, i, "SunP v2 Alt. Thermal Profile SoC")) {
-                dtb dtb = new dtb();
-                dtb.id = i;
-                dtb.type = ChipInfo.type.sun;
-                dtbs.add(dtb);
-            } else if (checkChip(context, i, "Blair")
-                    || checkChip(context, i, "Blair SoC")) {
-                dtb dtb = new dtb();
-                dtb.id = i;
-                dtb.type = ChipInfo.type.blair;
-                dtbs.add(dtb);
-            } else if (checkChip(context, i, "Holi")
-                    || checkChip(context, i, "Holi SoC")) {
-                dtb dtb = new dtb();
-                dtb.id = i;
-                dtb.type = ChipInfo.type.holi;
-                dtbs.add(dtb);    
             }
         }
     }
@@ -466,4 +440,33 @@ public class KonaBessCore {
                 i += size > 0 ? size : 1;
                 continue;
             }
-   
+            i++;
+        }
+
+        for (i = 0; i < cut.size(); i++) {
+            File out = new File(context.getFilesDir().getAbsolutePath() + "/" + i + ".dtb");
+            FileOutputStream fileOutputStream = new FileOutputStream(out);
+            int end = (int) dtb.length();
+            try {
+                end = cut.get(i + 1);
+            } catch (Exception ignored) {
+            }
+
+            fileOutputStream.write(dtb_bytes, cut.get(i), end - cut.get(i));
+            fileInputStream.close();
+        }
+
+        if (!dtb.delete())
+            throw new IOException();
+
+        return cut.size();
+    }
+
+    private static void dts2dtb(Context context, int index) throws IOException {
+        Process process = new ProcessBuilder("sh").redirectErrorStream(true).start();
+        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(process.getOutputStream());
+        BufferedReader bufferedReader =
+                new BufferedReader((new InputStreamReader(process.getInputStream())));
+        outputStreamWriter.write("cd " + context.getFilesDir().getAbsolutePath() + "\n");
+        outputStreamWriter.write("./dtc -I dts -O dtb " + index + ".dts -o " + index + ".dtb\n");
+        outputStreamWriter.write("
